@@ -23,6 +23,7 @@ module.exports = {
     user: process.env.GITHUB_USER,
     repo: process.env.GITHUB_REPO,
     branch: process.env.GITHUB_BRANCH,
+    lfs: ["jpg"],
   },
   "@indiekit/syndicator-mastodon": {
     checked: true,

@@ -18,16 +18,20 @@ export const postsController = async (request, response, next) => {
     const { application, publication } = request.app.locals;
     const { scope } = request.session;
 
-    let { page, limit, offset, success } = request.query;
-    page = Number.parseInt(page, 10) || 1;
-    limit = Number.parseInt(limit, 10) || 12;
-    offset = Number.parseInt(offset, 10) || (page - 1) * limit;
+    let { after, before, limit, success } = request.query;
+    limit = Number.parseInt(limit, 10) || 20;
 
     const micropubUrl = new URL(application.micropubEndpoint);
     micropubUrl.searchParams.append("q", "source");
-    micropubUrl.searchParams.append("page", page);
     micropubUrl.searchParams.append("limit", limit);
-    micropubUrl.searchParams.append("offset", offset);
+
+    if (before) {
+      micropubUrl.searchParams.append("before", before);
+    }
+
+    if (after) {
+      micropubUrl.searchParams.append("after", after);
+    }
 
     const micropubResponse = await endpoint.get(
       micropubUrl.href,
@@ -76,9 +80,19 @@ export const postsController = async (request, response, next) => {
       });
     }
 
-    /**
-     * @todo Remove requirement for private `_count` parameter
-     */
+    const paginationOptions = {};
+    if (micropubResponse?.before) {
+      paginationOptions.previous = {
+        href: `?before=${micropubResponse?.before}`,
+      };
+    }
+
+    if (micropubResponse?.after) {
+      paginationOptions.next = {
+        href: `?after=${micropubResponse?.after}`,
+      };
+    }
+
     response.render("posts", {
       title: response.__("posts.posts.title"),
       actions: [
@@ -90,10 +104,8 @@ export const postsController = async (request, response, next) => {
             }
           : {},
       ],
+      paginationOptions,
       posts,
-      page,
-      limit,
-      count: micropubResponse._count,
       parentUrl: request.baseUrl + request.path,
       status,
       success,

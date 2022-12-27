@@ -6,7 +6,7 @@
     cardSize: "16rem",
     items: posts
   }) }}
-  {{ pagination(pages(page, limit, count)) }}
+  {{ pagination(paginationOptions) }}
   {%- else -%}
   {{ prose({ text: __("posts.posts.none") }) }}
   {%- endif %}
